@@ -168,7 +168,7 @@ static zend_object_value php_jscontext_object_new_ex(zend_class_entry *class_typ
 #if JS_VERSION < 185
 	JS_SetOptions(intern->ct, JSOPTION_VAROBJFIX);
 #else
-	JS_SetOptions(intern->ct, JSOPTION_VAROBJFIX | JSOPTION_JIT | JSOPTION_METHODJIT);
+	JS_SetOptions(intern->ct, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT);
 #endif
 
 	/* set the error callback */
@@ -181,11 +181,11 @@ static zend_object_value php_jscontext_object_new_ex(zend_class_entry *class_typ
 #if JS_VERSION < 185
 	intern->obj = JS_NewObject(intern->ct, &intern->global_class, NULL, NULL);
 #else
-	intern->obj = JS_NewCompartmentAndGlobalObject(intern->ct, &intern->global_class, NULL);
+	intern->obj = JS_NewGlobalObject(intern->ct, &intern->global_class, NULL);
 #endif
 
 	/* store pointer to HashTable */
-	JS_SetPrivate(intern->ct, intern->obj, intern->jsref);
+	JS_SetPrivate(intern->obj, intern->jsref);
 
 	/* initialize standard JS classes */
 	JS_InitStandardClasses(intern->ct, intern->obj);
@@ -226,7 +226,6 @@ PHP_MINIT_FUNCTION(spidermonkey)
 	REGISTER_LONG_CONSTANT("JSOPTION_STRICT",				 JSOPTION_STRICT,				 CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("JSOPTION_VAROBJFIX",			 JSOPTION_VAROBJFIX,			 CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("JSOPTION_WERROR",			 	 JSOPTION_WERROR,				 CONST_CS | CONST_PERSISTENT);
-	REGISTER_LONG_CONSTANT("JSOPTION_XML",					 JSOPTION_XML,					 CONST_CS | CONST_PERSISTENT);
 
 	/*  VERSIONS */
 	REGISTER_LONG_CONSTANT("JSVERSION_1_0",	 JSVERSION_1_0,	  CONST_CS | CONST_PERSISTENT);
@@ -355,7 +354,8 @@ void _jsval_to_zval(zval *return_value, JSContext *ctx, jsval *jval, php_jsparen
 	}
 	else if (JSVAL_IS_BOOLEAN(rval))
 	{
-		if (rval == JSVAL_TRUE)
+		// JSVAL_TO_BOOLEAN returns a C int 0 or 1
+		if (JSVAL_TO_BOOLEAN(rval))
 		{
 			RETVAL_TRUE;
 		}
@@ -537,7 +537,7 @@ void zval_to_jsval(zval *val, JSContext *ctx, jsval *jval TSRMLS_DC)
 			}
 
 			/* store pointer to HashTable */
-			JS_SetPrivate(ctx, jobj, jsref);
+			JS_SetPrivate(jobj, jsref);
 
 			*jval = OBJECT_TO_JSVAL(jobj);
 			break;
@@ -556,7 +556,7 @@ void zval_to_jsval(zval *val, JSContext *ctx, jsval *jval TSRMLS_DC)
 			/* store pointer to object */
 			jsref->obj = val;
 			/* store pointer to HashTable */
-			JS_SetPrivate(ctx, jobj, jsref);
+			JS_SetPrivate(jobj, jsref);
 
 			/* retrieve class entry */
 			ce = Z_OBJCE_P(val);

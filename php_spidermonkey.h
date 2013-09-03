@@ -145,23 +145,23 @@ PHP_METHOD(JSContext, getVersionString);
  * struct in JSContext's constructor
  */
  #if JS_VERSION < 185
-JSBool generic_call(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool generic_constructor(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool generic_call(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval);
+JSBool generic_constructor(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval);
 /* streams */
-JSBool js_stream_read(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool js_stream_getline(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool js_stream_seek(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool js_stream_write(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool js_stream_tell(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool js_stream_read(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval);
+JSBool js_stream_getline(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval);
+JSBool js_stream_seek(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval);
+JSBool js_stream_write(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval);
+JSBool js_stream_tell(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval);
 #else
-JSBool generic_call(JSContext *cx, uintN argc, jsval *vp);
-JSBool generic_constructor(JSContext *cx, uintN argc, jsval *vp);
+JSBool generic_call(JSContext *cx, unsigned argc, jsval *vp);
+JSBool generic_constructor(JSContext *cx, unsigned argc, jsval *vp);
 /* streams */
-JSBool js_stream_read(JSContext *cx, uintN argc, jsval *vp);
-JSBool js_stream_getline(JSContext *cx, uintN argc, jsval *vp);
-JSBool js_stream_seek(JSContext *cx, uintN argc, jsval *vp);
-JSBool js_stream_write(JSContext *cx, uintN argc, jsval *vp);
-JSBool js_stream_tell(JSContext *cx, uintN argc, jsval *vp);
+JSBool js_stream_read(JSContext *cx, unsigned argc, jsval *vp);
+JSBool js_stream_getline(JSContext *cx, unsigned argc, jsval *vp);
+JSBool js_stream_seek(JSContext *cx, unsigned argc, jsval *vp);
+JSBool js_stream_write(JSContext *cx, unsigned argc, jsval *vp);
+JSBool js_stream_tell(JSContext *cx, unsigned argc, jsval *vp);
 #endif
 /* }}} */
 
