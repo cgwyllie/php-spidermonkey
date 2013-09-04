@@ -24,9 +24,9 @@
 /* this native is used for read from streams */
 
 #if JS_VERSION < 185
-JSBool js_stream_read(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+JSBool js_stream_read(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval)
 #else
-JSBool js_stream_read(JSContext *cx, uintN argc, jsval *vp)
+JSBool js_stream_read(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 {
 	TSRMLS_FETCH();
@@ -94,9 +94,9 @@ JSBool js_stream_read(JSContext *cx, uintN argc, jsval *vp)
 
 /* this native is used to retrieve a line from a stream */
 #if JS_VERSION < 185
-JSBool js_stream_getline(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+JSBool js_stream_getline(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval)
 #else
-JSBool js_stream_getline(JSContext *cx, uintN argc, jsval *vp)
+JSBool js_stream_getline(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 {
 	TSRMLS_FETCH();
@@ -165,9 +165,9 @@ JSBool js_stream_getline(JSContext *cx, uintN argc, jsval *vp)
 
 /* this native is used to seek in a stream */
 #if JS_VERSION < 185
-JSBool js_stream_seek(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+JSBool js_stream_seek(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval)
 #else
-JSBool js_stream_seek(JSContext *cx, uintN argc, jsval *vp)
+JSBool js_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 {
 	TSRMLS_FETCH();
@@ -223,9 +223,9 @@ JSBool js_stream_seek(JSContext *cx, uintN argc, jsval *vp)
 
 /* this native is used for writing to a stream */
 #if JS_VERSION < 185
-JSBool js_stream_write(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+JSBool js_stream_write(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval)
 #else
-JSBool js_stream_write(JSContext *cx, uintN argc, jsval *vp)
+JSBool js_stream_write(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 {
 	TSRMLS_FETCH();
@@ -287,7 +287,7 @@ JSBool js_stream_write(JSContext *cx, uintN argc, jsval *vp)
 			return JS_FALSE;
 		}
 		
-		JS_NewNumberValue(cx, nbytes, rval);
+		(*rval) = JS_NumberValue(nbytes);
 	}
 
 	return JS_TRUE;
@@ -295,9 +295,9 @@ JSBool js_stream_write(JSContext *cx, uintN argc, jsval *vp)
 
 /* this native is used for telling the position in the file */
 #if JS_VERSION < 185
-JSBool js_stream_tell(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+JSBool js_stream_tell(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval)
 #else
-JSBool js_stream_tell(JSContext *cx, uintN argc, jsval *vp)
+JSBool js_stream_tell(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 {
 	TSRMLS_FETCH();
@@ -334,7 +334,7 @@ JSBool js_stream_tell(JSContext *cx, uintN argc, jsval *vp)
 		file_pos = php_stream_tell(stream);
 
 		// read from string
-		JS_NewNumberValue(cx, file_pos, rval);
+		(*rval) = JS_NumberValue(file_pos);
 	}
 
 	return JS_TRUE;

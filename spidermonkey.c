@@ -78,8 +78,9 @@ static void php_jscontext_object_free_storage(void *object TSRMLS_DC)
 
 	// if a context is found ( which should be the case )
 	// destroy it
-	if (intern->ct != (JSContext*)NULL)
+	if (intern->ct != NULL && SPIDERMONKEY_G(rt) != NULL) {
 		JS_DestroyContext(intern->ct);
+	}
 
 	if (intern->ec_ht != NULL)
 	{
@@ -88,6 +89,7 @@ static void php_jscontext_object_free_storage(void *object TSRMLS_DC)
 	}
 
 	// we also need to clear up any callback we may have stored
+	/* DO WE? Finalizer on intern->obj will do this?!
 	if (intern->jsref != NULL)
 	{
 		if (intern->jsref->ht != NULL) {
@@ -101,6 +103,7 @@ static void php_jscontext_object_free_storage(void *object TSRMLS_DC)
 		}
 		efree(intern->jsref);
 	}
+	*/
 
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
 	efree(object);
@@ -364,7 +367,7 @@ void _jsval_to_zval(zval *return_value, JSContext *ctx, jsval *jval, php_jsparen
 			RETVAL_FALSE;
 		}
 	}
-	else if (JSVAL_IS_OBJECT(rval))
+	else if (!JSVAL_IS_PRIMITIVE(rval))
 	{
 		JSIdArray				*it;
 		JSObject				*obj = NULL;
@@ -409,12 +412,32 @@ void _jsval_to_zval(zval *return_value, JSContext *ctx, jsval *jval, php_jsparen
                 jsthis.zobj    = return_value;
                 jsthis.parent  = parent;
 
+                // Before iteration, need to root the object to prevent GC
+                JS_AddValueRoot(ctx, jval);
 				/* then iterate on each property */
 				it = JS_Enumerate(ctx, obj);
+
+				// php_printf("Checking it for NULL...\n");
+				if (it == NULL) {
+					// php_printf("it is NULL\n");
+					RETVAL_NULL();
+				}
+				// php_printf("it is %x\n", it);
+
+				// int length = JS_IdArrayLength(ctx, it);
+				// php_printf("Length is %d\n", length);
+
+				// int derefLen = (*it);
+				// php_printf("Dereferenced length is %d\n", it->length);
+
+				// php_printf("it is %x\n", it);
 
 				for (i = 0; i < it->length; i++)
 				{
 					jsval val;
+					// php_printf("ctx is %x, it is %x, i is %x\n", ctx, it, i);
+
+					// jsid id = JS_IdArrayGet(NULL, it, i);
 					jsid id = it->vector[i];
 
 					if (JS_IdToValue(ctx, id, &val) == JS_TRUE)
@@ -454,6 +477,9 @@ void _jsval_to_zval(zval *return_value, JSContext *ctx, jsval *jval, php_jsparen
 				}
 
 				JS_DestroyIdArray(ctx, it);
+
+				// We're done with it, remove from root set for GC protection
+				JS_RemoveValueRoot(ctx, jval);
 			} else {
                 RETVAL_ZVAL(zobj, 1, NULL);
             }
@@ -492,10 +518,10 @@ void zval_to_jsval(zval *val, JSContext *ctx, jsval *jval TSRMLS_DC)
 	switch(Z_TYPE_P(val))
 	{
 		case IS_LONG:
-			JS_NewNumberValue(ctx, Z_LVAL_P(val), jval);
+			(*jval) = JS_NumberValue(Z_LVAL_P(val));
 			break;
 		case IS_DOUBLE:
-			JS_NewNumberValue(ctx, Z_DVAL_P(val), jval);
+			(*jval) = JS_NumberValue(Z_DVAL_P(val));
 			break;
 		case IS_STRING:
 			jstr = JS_NewStringCopyN(ctx, Z_STRVAL_P(val), Z_STRLEN_P(val));

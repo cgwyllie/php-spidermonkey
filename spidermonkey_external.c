@@ -55,9 +55,9 @@ void php_jsobject_set_property(JSContext *ctx, JSObject *obj, char *property_nam
 
 /* all function calls are mapped through this unique function */
 #if JS_VERSION < 185
-JSBool generic_call(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+JSBool generic_call(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval)
 #else
-JSBool generic_call(JSContext *cx, uintN argc, jsval *vp)
+JSBool generic_call(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 {
 	TSRMLS_FETCH();
@@ -150,9 +150,9 @@ JSBool generic_call(JSContext *cx, uintN argc, jsval *vp)
 
 /* this native is used for class constructors */
 #if JS_VERSION < 185
-JSBool generic_constructor(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+JSBool generic_constructor(JSContext *cx, JSObject *obj, unsigned argc, jsval *argv, jsval *rval)
 #else
-JSBool generic_constructor(JSContext *cx, uintN argc, jsval *vp)
+JSBool generic_constructor(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 {
 	TSRMLS_FETCH();
@@ -435,10 +435,11 @@ JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 void JS_FinalizePHP(JSContext *cx, JSObject *obj)
 {
 	php_jsobject_ref		*jsref;
-	php_jscontext_object	*intern;
+	// php_jscontext_object	*intern;
 
-	intern = (php_jscontext_object*)JS_GetContextPrivate(cx);
-	jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, &intern->script_class, NULL);
+	// intern = (php_jscontext_object*)JS_GetContextPrivate(cx);
+	// jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, &intern->script_class, NULL);
+	jsref = (php_jsobject_ref*) JS_GetPrivate(obj);
 
 	/* destroy ref object */
 	if (jsref != NULL)

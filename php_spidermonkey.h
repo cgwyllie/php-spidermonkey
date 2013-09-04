@@ -41,6 +41,11 @@
 /* Include JSAPI Header */
 #include "jsapi.h"
 
+struct JSIdArray {
+  int length;
+  jsid vector[1];
+};
+
 #define PHP_JSRUNTIME_GC_MEMORY_THRESHOLD   "8388608"
 
 #define PHP_SPIDERMONKEY_JSC_NAME			"JSContext"
