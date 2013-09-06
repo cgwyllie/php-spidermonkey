@@ -172,16 +172,20 @@ JSBool js_stream_tell(JSContext *cx, unsigned argc, jsval *vp);
 
 /* Methods used/exported in JS */
 void reportError(JSContext *cx, const char *message, JSErrorReport *report);
-void JS_FinalizePHP(JSContext *cx, JSObject *obj);
-#if JS_VERSION < 185
-JSBool JS_ResolvePHP(JSContext *cx, JSObject *obj, jsval id);
-JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
-JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
-#else
+// void JS_FinalizePHP(JSContext *cx, JSObject *obj);
+// #if JS_VERSION < 185
+// JSBool JS_ResolvePHP(JSContext *cx, JSObject *obj, jsval id);
+// JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+// JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+// #else
 JSBool JS_ResolvePHP(JSContext *cx, JSObject *obj, jsid id);
-JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
-JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
-#endif
+// JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool JS_PropertySetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle<jsid> id, JSBool strict, JS::MutableHandle<JS::Value> vp);
+// JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
+JSBool JS_PropertyGetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle<jsid> id, JS::MutableHandle<JS::Value> vp);
+
+void JS_FinalizePHP(JSFreeOp* freeOp, JSObject *obj);
+// #endif
 
 /* Define the entry point symbol
  * Zend will use when loading this module

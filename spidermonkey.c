@@ -24,6 +24,8 @@
 #endif
 
 #include "php_spidermonkey.h"
+#include <php5/ext/standard/info.h>
+#include <zend_exceptions.h>
 
 static int le_jscontext_descriptor;
 
@@ -152,13 +154,16 @@ static zend_object_value php_jscontext_object_new_ex(zend_class_entry *class_typ
 	/* The script_class is a global object used by PHP to allow function register */
 	intern->script_class.name			= "PHPClass";
 	intern->script_class.flags			= JSCLASS_HAS_PRIVATE;
+	php_printf("script_class ptr is %x\n", &intern->script_class);
+	php_printf("class registration flags are %x\n", intern->script_class.flags);
+	php_printf("private flags are %x\n", JSCLASS_HAS_PRIVATE);
 
 	/* Mandatory non-null function pointer members. */
 	intern->script_class.addProperty	= JS_PropertyStub;
 	intern->script_class.delProperty	= JS_PropertyStub;
 	intern->script_class.getProperty	= JS_PropertyGetterPHP;
 	intern->script_class.setProperty	= JS_PropertySetterPHP;
-	intern->script_class.resolve		= JS_ResolvePHP;
+	intern->script_class.resolve		= JS_ResolveStub;
 	intern->script_class.finalize		= JS_FinalizePHP;
 	intern->script_class.enumerate		= JS_EnumerateStub;
 	intern->script_class.convert		= JS_ConvertStub;
@@ -166,6 +171,7 @@ static zend_object_value php_jscontext_object_new_ex(zend_class_entry *class_typ
 	memcpy(&intern->global_class, &intern->script_class, sizeof(intern->script_class));
 	intern->global_class.name			= "PHPGlobalClass";
 	intern->global_class.flags			= JSCLASS_GLOBAL_FLAGS | JSCLASS_HAS_PRIVATE;
+	php_printf("global_class ptr is %x\n", &intern->global_class);
 
 	/* says that our script runs in global scope */
 #if JS_VERSION < 185
@@ -506,6 +512,7 @@ void zval_to_jsval(zval *val, JSContext *ctx, jsval *jval TSRMLS_DC)
 	php_jscontext_object	*intern;
 	php_jsobject_ref		*jsref;
 	php_stream				*stream;
+	JSClass					*tmpClass;
 
 	PHPJS_START(ctx);
 
@@ -572,6 +579,12 @@ void zval_to_jsval(zval *val, JSContext *ctx, jsval *jval TSRMLS_DC)
 			/* create JSObject */
 			jobj = JS_NewObject(ctx, &intern->script_class, NULL, NULL);
 
+			tmpClass = JS_GetClass(jobj);
+			php_printf("script_class ptr is %x\n", &intern->script_class);
+			php_printf("obj ptr is %x\n", jobj);
+			php_printf("tmpClass name is %s\n", tmpClass->name);
+			php_printf("tmpClass flags are %x\n", tmpClass->flags);
+
 			jsref = (php_jsobject_ref*)emalloc(sizeof(php_jsobject_ref));
 			/* intern hashtable for function storage */
 			ALLOC_HASHTABLE(jsref->ht);
@@ -581,6 +594,7 @@ void zval_to_jsval(zval *val, JSContext *ctx, jsval *jval TSRMLS_DC)
 
 			/* store pointer to object */
 			jsref->obj = val;
+			php_printf("jsref ptr is %x\n", jsref);
 			/* store pointer to HashTable */
 			JS_SetPrivate(jobj, jsref);
 

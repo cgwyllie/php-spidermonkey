@@ -63,7 +63,7 @@ JSBool generic_call(JSContext *cx, unsigned argc, jsval *vp)
 	TSRMLS_FETCH();
 	JSFunction				*func;
 	JSString				*jfunc_name;
-	JSClass					*class;
+	JSClass					*jsclass;
 	char					*func_name;
 	zval					***params, *retval_ptr = NULL;
 	php_callback			*callback;
@@ -87,13 +87,13 @@ JSBool generic_call(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 
 	intern = (php_jscontext_object*)JS_GetContextPrivate(cx);
-	class = &intern->script_class;
+	jsclass = &intern->script_class;
 	
 	if (obj == intern->obj) {
-		class =&intern->global_class;
+		jsclass =&intern->global_class;
 	}
 	
-	if ((jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, class, NULL)) == 0)
+	if ((jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, jsclass, NULL)) == 0)
 	{
 		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Failed to retrieve function table", 0 TSRMLS_CC);
 	}
@@ -109,10 +109,10 @@ JSBool generic_call(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 
 	/* ready parameters */
-	params = emalloc(argc * sizeof(zval**));
+	params = (zval***) emalloc(argc * sizeof(zval**));
 	for (i = 0; i < argc; i++)
 	{
-		zval **val = emalloc(sizeof(zval*));
+		zval **val = (zval**) emalloc(sizeof(zval*));
 		MAKE_STD_ZVAL(*val);
 		jsval_to_zval(*val, cx, &argv[i]);
 		params[i] = val;
@@ -156,14 +156,13 @@ JSBool generic_constructor(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 {
 	TSRMLS_FETCH();
-	JSFunction				*class;
+	JSFunction				*jsclass;
 	JSString				*jclass_name;
 	char					*class_name;
 	zval					***params, *retval_ptr;
 	zend_class_entry		*ce, **pce;
 	zval					*cobj;
 #if JS_VERSION >= 185
-	JSObject				*obj  = JS_THIS_OBJECT(cx, vp);
 	jsval					*argv = JS_ARGV(cx,vp);
 	jsval					*rval = &JS_RVAL(cx,vp);
 #endif
@@ -179,14 +178,16 @@ JSBool generic_constructor(JSContext *cx, unsigned argc, jsval *vp)
 #endif
 
 	/* first retrieve class name */
-	class = JS_ValueToFunction(cx, ((argv)[-2]));
-	jclass_name = JS_GetFunctionId(class);
+	jsclass = JS_ValueToFunction(cx, ((argv)[-2]));
+	jclass_name = JS_GetFunctionId(jsclass);
 #if JS_VERSION < 185
 	class_name = JS_GetStringBytes(jclass_name);
 #else
 	/* because version 1.8.5 supports unicode, we must encode strings */
 	class_name = JS_EncodeString(cx, jclass_name);
 #endif
+
+	// php_printf("Generic constructor called with class name %s\n", class_name);
 
 	intern = (php_jscontext_object*)JS_GetContextPrivate(cx);
 
@@ -223,7 +224,7 @@ JSBool generic_constructor(JSContext *cx, unsigned argc, jsval *vp)
 		object_init_ex(cobj, ce);
 
 		/* ready parameters */
-		params = emalloc(argc * sizeof(zval**));
+		params = (zval***) emalloc(argc * sizeof(zval**));
 		for (i = 0; i < argc; i++)
 		{
 			zval *val;
@@ -297,35 +298,36 @@ JSBool generic_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 	return JS_TRUE;
 }
-#if JS_VERSION < 185
-JSBool JS_ResolvePHP(JSContext *cx, JSObject *obj, jsval id)
-#else
-JSBool JS_ResolvePHP(JSContext *cx, JSObject *obj, jsid id)
-#endif
-{
-	/* always return true, as PHP doesn't use any resolver */
-	return JS_TRUE;
-}
+// #if JS_VERSION < 185
+// JSBool JS_ResolvePHP(JSContext *cx, JSObject *obj, jsval id)
+// #else
+// JSBool JS_ResolvePHP(JSContext *cx, JSObject *obj, jsid id)
+// #endif
+// {
+// 	/* always return true, as PHP doesn't use any resolver */
+// 	return JS_TRUE;
+// }
 
-#if JS_VERSION < 185
-JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
-#else
-JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp)
-#endif
+// #if JS_VERSION < 185
+// JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+// #else
+// JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp)
+JSBool JS_PropertySetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle<jsid> id, JSBool strict, JS::MutableHandle<JS::Value> vp)
+// #endif
 {
 	TSRMLS_FETCH();
 	php_jsobject_ref		*jsref;
 	php_jscontext_object	*intern;
-	JSClass					*class;
+	JSClass					*jsclass;
 
 	intern = (php_jscontext_object*)JS_GetContextPrivate(cx);
-	class = &intern->script_class;
+	jsclass = &intern->script_class;
 
 	if (obj == intern->obj) {
-		class =&intern->global_class;
+		jsclass =&intern->global_class;
 	}
 
-	jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, class, NULL);
+	jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, jsclass, NULL);
 
 	if (jsref != NULL)
 	{
@@ -347,7 +349,7 @@ JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsid id, JSBool strict
 #endif
 
 			MAKE_STD_ZVAL(val);
-			jsval_to_zval(val, cx, vp);
+			jsval_to_zval(val, cx, vp.address());
 
 			zend_update_property(Z_OBJCE_P(jsref->obj), jsref->obj, prop_name, strlen(prop_name), val TSRMLS_CC);
 			zval_ptr_dtor(&val);
@@ -362,24 +364,35 @@ JSBool JS_PropertySetterPHP(JSContext *cx, JSObject *obj, jsid id, JSBool strict
 	return JS_TRUE;
 }
 
-#if JS_VERSION < 185
-JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
-#else
-JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
-#endif
+// #if JS_VERSION < 185
+// JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+// #else
+// JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+JSBool JS_PropertyGetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle<jsid> id, JS::MutableHandle<JS::Value> vp)
+// #endif
 {
+	php_printf("Property getter called\n");
 	TSRMLS_FETCH();
 	php_jsobject_ref		*jsref;
 	php_jscontext_object	*intern;
-	JSClass					*class;
+	JSClass					*jsclass = JS_GetClass(obj);
 
 	intern = (php_jscontext_object*)JS_GetContextPrivate(cx);
-	class = &intern->script_class;
+	// class = &intern->script_class;
 	
-	if (obj == intern->obj) {
-		class =&intern->global_class;
+	// if (obj == intern->obj) {
+	// 	php_printf("using global class");
+	// 	class =&intern->global_class;
+	// }
+	// jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, class, NULL);
+
+	php_printf("obj ptr is %x\n", obj);
+	php_printf("JSClass name is %s\n", jsclass->name);
+	php_printf("class flags are %x\n", jsclass->flags);
+
+	if (jsref == NULL) {
+		php_printf("jsref is NULL\n");
 	}
-	jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, &intern->script_class, NULL);
 
 	if (jsref != NULL) {
 		if (jsref->obj != NULL && Z_TYPE_P(jsref->obj) == IS_OBJECT) {
@@ -399,10 +412,9 @@ JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 			/* because version 1.8.5 supports unicode, we must encode strings */
 			prop_name = JS_EncodeString(cx, str);
 #endif
-
             has_property = JS_FALSE;
             if (JS_HasProperty(cx, obj, prop_name, &has_property) && (has_property == JS_TRUE)) {
-                if (JS_LookupProperty(cx, obj, prop_name, vp) == JS_TRUE) {
+                if (JS_LookupProperty(cx, obj, prop_name, vp.address()) == JS_TRUE) {
 					/* free prop name */
 #if JS_VERSION >= 185
 					JS_free(cx, prop_name);
@@ -420,7 +432,7 @@ JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 
 			if (val != EG(uninitialized_zval_ptr)) {
 				zval_add_ref(&val);
-				zval_to_jsval(val, cx, vp TSRMLS_CC);
+				zval_to_jsval(val, cx, vp.address() TSRMLS_CC);
 				zval_ptr_dtor(&val);
 				return JS_TRUE;
 			}
@@ -432,8 +444,9 @@ JSBool JS_PropertyGetterPHP(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 
 /* This is called when a JSObject is destroyed by the GC or when the context
  * is detroyed */
-void JS_FinalizePHP(JSContext *cx, JSObject *obj)
+void JS_FinalizePHP(JSFreeOp *freeOp, JSObject *obj)
 {
+	php_printf("JS_FinalizePHP called\n");
 	php_jsobject_ref		*jsref;
 	// php_jscontext_object	*intern;
 
@@ -441,9 +454,15 @@ void JS_FinalizePHP(JSContext *cx, JSObject *obj)
 	// jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, &intern->script_class, NULL);
 	jsref = (php_jsobject_ref*) JS_GetPrivate(obj);
 
+	JSClass *tmpClass = JS_GetClass(obj);
+	php_printf("obj ptr is %x\n", obj);
+	php_printf("tmpClass name is %s\n", tmpClass->name);
+	php_printf("jsref ptr is %x\n", jsref);
+
 	/* destroy ref object */
 	if (jsref != NULL)
 	{
+		php_printf("Private field is not NULL\n");
 		/* free the functions hash table */
 		if (jsref->ht != NULL)
 		{

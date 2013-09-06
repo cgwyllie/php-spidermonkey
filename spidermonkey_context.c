@@ -97,11 +97,11 @@ PHP_METHOD(JSContext, registerClass)
 	 *        already exists */
 	if (exported_name != NULL) {
 		zend_hash_add(intern->ec_ht, exported_name, exported_name_len, &ce, sizeof(zend_class_entry**), NULL);
-		JS_DefineFunction(intern->ct, intern->obj, exported_name, generic_constructor, 1, 0);
+		JS_DefineFunction(intern->ct, intern->obj, exported_name, generic_constructor, 1, JSFUN_CONSTRUCTOR);
 	}
 	else {
 		zend_hash_add(intern->ec_ht, class_name, class_name_len, &ce, sizeof(zend_class_entry**), NULL);
-		JS_DefineFunction(intern->ct, intern->obj, class_name, generic_constructor, 1, 0);
+		JS_DefineFunction(intern->ct, intern->obj, class_name, generic_constructor, 1, JSFUN_CONSTRUCTOR);
 	}
 
 	PHPJS_END(intern->ct);
@@ -245,26 +245,26 @@ PHP_METHOD(JSContext, getOptions)
    dependant of the current spidermonkey library */
 PHP_METHOD(JSContext, setVersion)
 {
-	php_jscontext_object	*intern;
-	long					version;
-	long					old_version;
+	// php_jscontext_object	*intern;
+	// long					version;
+	// long					old_version;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-						 "l", &version) == FAILURE) {
-		RETURN_NULL();
-	}
+	// if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
+	// 					 "l", &version) == FAILURE) {
+	// 	RETURN_NULL();
+	// }
 
-	intern = (php_jscontext_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	old_version = JS_SetVersion(intern->ct, version);
+	// intern = (php_jscontext_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	// old_version = JS_SetVersion(intern->ct, version);
 	
-	if (JS_GetVersion(intern->ct) == version)
-	{
-		RETVAL_LONG(old_version);
-	}
-	else
-	{
-		RETURN_FALSE;
-	}
+	// if (JS_GetVersion(intern->ct) == version)
+	// {
+	// 	RETVAL_LONG(old_version);
+	// }
+	// else
+	// {
+	// 	RETURN_FALSE;
+	// }
 }
 /* }}} */
 
@@ -284,19 +284,19 @@ PHP_METHOD(JSContext, getVersion)
    Return the version name base on his number*/
 PHP_METHOD(JSContext, getVersionString)
 {
-	const char *version_str;
-	int l;
-	long version;
+	// const char *version_str;
+	// int l;
+	// long version;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-						 "l", &version) == FAILURE) {
-		RETURN_NULL();
-	}
+	// if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
+	// 					 "l", &version) == FAILURE) {
+	// 	RETURN_NULL();
+	// }
 
-	version_str = JS_VersionToString(version);
-	l = strlen(version_str);
+	// version_str = JS_VersionToString(version);
+	// l = strlen(version_str);
 
-	RETVAL_STRINGL(estrndup(version_str, l), l, 0);
+	// RETVAL_STRINGL(estrndup(version_str, l), l, 0);
 }
 /* }}} */
 
