@@ -384,7 +384,7 @@ JSBool JS_PropertyGetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle
 	// 	php_printf("using global class");
 	// 	class =&intern->global_class;
 	// }
-	// jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, class, NULL);
+	jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, jsclass, NULL);
 
 	php_printf("obj ptr is %x\n", obj);
 	php_printf("JSClass name is %s\n", jsclass->name);
@@ -393,6 +393,15 @@ JSBool JS_PropertyGetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle
 	if (jsref == NULL) {
 		php_printf("jsref is NULL\n");
 	}
+
+	// JSString *str;
+	// char *prop_name;
+	// jsval rid;
+	// JS_IdToValue(cx, id, &rid);
+	// str = JS_ValueToString(cx, rid);
+	//  because version 1.8.5 supports unicode, we must encode strings 
+	// prop_name = JS_EncodeString(cx, str);
+	// php_printf("prop_name is %s\n", prop_name);
 
 	if (jsref != NULL) {
 		if (jsref->obj != NULL && Z_TYPE_P(jsref->obj) == IS_OBJECT) {
