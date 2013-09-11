@@ -371,7 +371,7 @@ JSBool JS_PropertySetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle
 JSBool JS_PropertyGetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle<jsid> id, JS::MutableHandle<JS::Value> vp)
 // #endif
 {
-	php_printf("Property getter called\n");
+	// php_printf("Property getter called\n");
 	TSRMLS_FETCH();
 	php_jsobject_ref		*jsref;
 	php_jscontext_object	*intern;
@@ -386,12 +386,12 @@ JSBool JS_PropertyGetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle
 	// }
 	jsref = (php_jsobject_ref*)JS_GetInstancePrivate(cx, obj, jsclass, NULL);
 
-	php_printf("obj ptr is %x\n", obj);
-	php_printf("JSClass name is %s\n", jsclass->name);
-	php_printf("class flags are %x\n", jsclass->flags);
+	// php_printf("obj ptr is %x\n", obj);
+	// php_printf("JSClass name is %s\n", jsclass->name);
+	// php_printf("class flags are %x\n", jsclass->flags);
 
 	if (jsref == NULL) {
-		php_printf("jsref is NULL\n");
+		// php_printf("jsref is NULL\n");
 	}
 
 	// JSString *str;
@@ -455,7 +455,7 @@ JSBool JS_PropertyGetterPHP(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle
  * is detroyed */
 void JS_FinalizePHP(JSFreeOp *freeOp, JSObject *obj)
 {
-	php_printf("JS_FinalizePHP called\n");
+	// php_printf("JS_FinalizePHP called\n");
 	php_jsobject_ref		*jsref;
 	// php_jscontext_object	*intern;
 
@@ -464,14 +464,14 @@ void JS_FinalizePHP(JSFreeOp *freeOp, JSObject *obj)
 	jsref = (php_jsobject_ref*) JS_GetPrivate(obj);
 
 	JSClass *tmpClass = JS_GetClass(obj);
-	php_printf("obj ptr is %x\n", obj);
-	php_printf("tmpClass name is %s\n", tmpClass->name);
-	php_printf("jsref ptr is %x\n", jsref);
+	// php_printf("obj ptr is %x\n", obj);
+	// php_printf("tmpClass name is %s\n", tmpClass->name);
+	// php_printf("jsref ptr is %x\n", jsref);
 
 	/* destroy ref object */
 	if (jsref != NULL)
 	{
-		php_printf("Private field is not NULL\n");
+		// php_printf("Private field is not NULL\n");
 		/* free the functions hash table */
 		if (jsref->ht != NULL)
 		{

@@ -154,9 +154,9 @@ static zend_object_value php_jscontext_object_new_ex(zend_class_entry *class_typ
 	/* The script_class is a global object used by PHP to allow function register */
 	intern->script_class.name			= "PHPClass";
 	intern->script_class.flags			= JSCLASS_HAS_PRIVATE;
-	php_printf("script_class ptr is %x\n", &intern->script_class);
-	php_printf("class registration flags are %x\n", intern->script_class.flags);
-	php_printf("private flags are %x\n", JSCLASS_HAS_PRIVATE);
+	// php_printf("script_class ptr is %x\n", &intern->script_class);
+	// php_printf("class registration flags are %x\n", intern->script_class.flags);
+	// php_printf("private flags are %x\n", JSCLASS_HAS_PRIVATE);
 
 	/* Mandatory non-null function pointer members. */
 	intern->script_class.addProperty	= JS_PropertyStub;
@@ -171,7 +171,7 @@ static zend_object_value php_jscontext_object_new_ex(zend_class_entry *class_typ
 	memcpy(&intern->global_class, &intern->script_class, sizeof(intern->script_class));
 	intern->global_class.name			= "PHPGlobalClass";
 	intern->global_class.flags			= JSCLASS_GLOBAL_FLAGS | JSCLASS_HAS_PRIVATE;
-	php_printf("global_class ptr is %x\n", &intern->global_class);
+	// php_printf("global_class ptr is %x\n", &intern->global_class);
 
 	/* says that our script runs in global scope */
 #if JS_VERSION < 185
@@ -579,11 +579,11 @@ void zval_to_jsval(zval *val, JSContext *ctx, jsval *jval TSRMLS_DC)
 			/* create JSObject */
 			jobj = JS_NewObject(ctx, &intern->script_class, NULL, NULL);
 
-			tmpClass = JS_GetClass(jobj);
-			php_printf("script_class ptr is %x\n", &intern->script_class);
-			php_printf("obj ptr is %x\n", jobj);
-			php_printf("tmpClass name is %s\n", tmpClass->name);
-			php_printf("tmpClass flags are %x\n", tmpClass->flags);
+			// tmpClass = JS_GetClass(jobj);
+			// php_printf("script_class ptr is %x\n", &intern->script_class);
+			// php_printf("obj ptr is %x\n", jobj);
+			// php_printf("tmpClass name is %s\n", tmpClass->name);
+			// php_printf("tmpClass flags are %x\n", tmpClass->flags);
 
 			jsref = (php_jsobject_ref*)emalloc(sizeof(php_jsobject_ref));
 			/* intern hashtable for function storage */
@@ -594,7 +594,7 @@ void zval_to_jsval(zval *val, JSContext *ctx, jsval *jval TSRMLS_DC)
 
 			/* store pointer to object */
 			jsref->obj = val;
-			php_printf("jsref ptr is %x\n", jsref);
+			// php_printf("jsref ptr is %x\n", jsref);
 			/* store pointer to HashTable */
 			JS_SetPrivate(jobj, jsref);
 
